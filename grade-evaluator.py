@@ -96,8 +96,31 @@ def evaluate_grades(data):
     summative_percentage = (summative_score/40) * 100
 
     course_passed = formative_percentage >= 50 and summative_percentage >= 50
-    
-    pass
+
+    failed_formative_assignments = []
+    for record in data:
+        if record['group'].lower() == 'formative' and record['score'] < 50:
+            failed_formative_assignments.append(record)
+
+    resubmission_options = []
+    if failed_formative_assignments:
+        max_weight = max(record['weight'] for record in failed_formative_assignments)
+        resubmission_options = [record for record in failed_formative_assignments if record['weight'] == max_weight]
+
+    print(f"Formative Score: {formative_score:.0f}/60 ({formative_percentage:.0f}%)")
+    print(f"Summative Score: {summative_score:.0f}/40 ({summative_percentage:.0f}%)")
+    print(f"Total Score: {total_score:.0f}/100")
+    print(f"GPA: {gpa:.2f}")
+    print(f"Course Status: {'PASSED' if course_passed else 'FAILED'}")
+
+    if resubmission_options:
+        print("Resubmission Options:")
+        for record in resubmission_options:
+            print(f" - {record['assignment']} "
+                  f"(score:{record['score']:.0f}, weight:{record['weight']:.0f}%)")
+    else:
+        print("No resubmission options available.")
+
 
 if __name__ == "__main__":
     # 1. Load the data
