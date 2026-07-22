@@ -46,19 +46,23 @@ def evaluate_grades(data):
     #          and determine which one(s) have the highest weight for resubmission.
     # TODO: f) Print the final decision (PASSED / FAILED) and resubmission options
     
+    # Validate that the data is not empty
     if not data:
         print("Error: The CSV file contains no data to process.")
         sys.exit(1)
 
+    # Validate scores are within the range of 0 to 100
     for record in data:
         if record['score'] < 0 or record['score'] > 100:
             print(f"Error: Score for assignment '{record['assignment']}' is out of range (0-100).")
             sys.exit(1)
 
+    # Initialize weight counters
     total_weight = 0.0
     formative_weight = 0.0
     summative_weight = 0.0
 
+    # Validate total weights
     for record in data:
         total_weight += record['weight']
         if record['group'].lower() == 'formative':
@@ -69,6 +73,7 @@ def evaluate_grades(data):
             print(f"Error: Unknown group '{record['group']}' for assignment '{record['assignment']}'.")
             sys.exit(1)
 
+    # Check if the weights are as expected
     if abs(total_weight - 100.0) > 0.01:
         print(f"Error: Total weight is {total_weight}, but it should be 100.")
         sys.exit(1)
@@ -79,9 +84,11 @@ def evaluate_grades(data):
         print(f"Error: Total summative weight is {summative_weight}, but it should be 40.")
         sys.exit(1)
 
+    # Initialize scores
     formative_score = 0.0
     summative_score = 0.0   
 
+    # Calculate the scores based on weights
     for record in data:
         points_earned = record['score'] * (record['weight'] / 100.0)
         if record['group'].lower() == 'formative':
@@ -89,14 +96,18 @@ def evaluate_grades(data):
         else:
             summative_score += points_earned
 
+    # Calculate total score and GPA
     total_score = formative_score + summative_score
     gpa = (total_score / 100.0) * 5.0
 
+    # Calculate percentages for formative and summative scores
     formative_percentage = (formative_score/60) * 100
     summative_percentage = (summative_score/40) * 100
 
+    # Determine if the course is passed based on the criteria
     course_passed = formative_percentage >= 50 and summative_percentage >= 50
 
+    # Check for failed formative assignments and determine resubmission options
     failed_formative_assignments = []
     for record in data:
         if record['group'].lower() == 'formative' and record['score'] < 50:
@@ -107,12 +118,14 @@ def evaluate_grades(data):
         max_weight = max(record['weight'] for record in failed_formative_assignments)
         resubmission_options = [record for record in failed_formative_assignments if record['weight'] == max_weight]
 
+    # Print the results
     print(f"Formative Score: {formative_score:.0f}/60 ({formative_percentage:.0f}%)")
     print(f"Summative Score: {summative_score:.0f}/40 ({summative_percentage:.0f}%)")
     print(f"Total Score: {total_score:.0f}/100")
     print(f"GPA: {gpa:.2f}")
     print(f"Course Status: {'PASSED' if course_passed else 'FAILED'}")
 
+    # Print resubmission options if any
     if resubmission_options:
         print("Resubmission Options:")
         for record in resubmission_options:
