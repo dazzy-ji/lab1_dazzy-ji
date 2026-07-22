@@ -46,6 +46,57 @@ def evaluate_grades(data):
     #          and determine which one(s) have the highest weight for resubmission.
     # TODO: f) Print the final decision (PASSED / FAILED) and resubmission options
     
+    if not data:
+        print("Error: The CSV file contains no data to process.")
+        sys.exit(1)
+
+    for record in data:
+        if record['score'] < 0 or record['score'] > 100:
+            print(f"Error: Score for assignment '{record['assignment']}' is out of range (0-100).")
+            sys.exit(1)
+
+    total_weight = 0.0
+    formative_weight = 0.0
+    summative_weight = 0.0
+
+    for record in data:
+        total_weight += record['weight']
+        if record['group'].lower() == 'formative':
+            formative_weight += record['weight']
+        elif record['group'].lower() == 'summative':
+            summative_weight += record['weight']
+        else:
+            print(f"Error: Unknown group '{record['group']}' for assignment '{record['assignment']}'.")
+            sys.exit(1)
+
+    if abs(total_weight - 100.0) > 0.01:
+        print(f"Error: Total weight is {total_weight}, but it should be 100.")
+        sys.exit(1)
+    if abs(formative_weight - 60.0) > 0.01:
+        print(f"Error: Total formative weight is {formative_weight}, but it should be 60.")
+        sys.exit(1)
+    if abs(summative_weight - 40.0) > 0.01:
+        print(f"Error: Total summative weight is {summative_weight}, but it should be 40.")
+        sys.exit(1)
+
+    formative_score = 0.0
+    summative_score = 0.0   
+
+    for record in data:
+        points_earned = record['score'] * (record['weight'] / 100.0)
+        if record['group'].lower() == 'formative':
+            formative_score += points_earned
+        else:
+            summative_score += points_earned
+
+    total_score = formative_score + summative_score
+    gpa = (total_score / 100.0) * 5.0
+
+    formative_percentage = (formative_score/60) * 100
+    summative_percentage = (summative_score/40) * 100
+
+    course_passed = formative_percentage >= 50 and summative_percentage >= 50
+    
     pass
 
 if __name__ == "__main__":
